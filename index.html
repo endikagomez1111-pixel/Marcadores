@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marcadores podcast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3EFE8; --surface:#E6E0D6; --ink:#1F1B16; --muted:#6B6258; --line:#CFC6B8;
+  --sony:#2F6FD6; --iphone:#2E9A5B; --move:#1F9AAE; --rotulo:#C99A12; --imagen:#7F4FC9; --dest:#D24C8A;
+  --tally:#E0362C; --onbtn:#FFFFFF;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#171512; --surface:#25221D; --ink:#F1ECE3; --muted:#9C9387; --line:#3A352E;
+    --sony:#3B7BE6; --iphone:#34A865; --move:#2AA7BB; --rotulo:#D9A818; --imagen:#8F5FDA; --dest:#E0569A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#171512; --surface:#25221D; --ink:#F1ECE3; --muted:#9C9387; --line:#3A352E;
+  --sony:#3B7BE6; --iphone:#34A865; --move:#2AA7BB; --rotulo:#D9A818; --imagen:#8F5FDA; --dest:#E0569A;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:560px;margin:0 auto;padding:14px 14px 28px}
+button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--tally);outline-offset:2px}
+.cond{font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif}
+
+/* Cabecera: estado + reloj */
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:6px 2px 12px;border-bottom:2px solid var(--line)}
+.status{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600;font-size:1.05rem;color:var(--muted)}
+.status b{color:var(--ink)}
+.clock{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:3.4rem;line-height:.9;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.live .clock{color:var(--tally)}
+
+/* Bloque de inicio */
+.start{margin-top:16px;display:grid;gap:12px}
+.big{width:100%;padding:22px 16px;border-radius:14px;background:var(--ink);color:var(--bg);font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:1.7rem}
+.ghost{background:transparent;border:2px solid var(--line);color:var(--ink);font-size:1.15rem;padding:14px;border-radius:12px;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600;width:100%}
+.meter{height:14px;border-radius:7px;background:var(--surface);position:relative;overflow:hidden}
+.meter i{position:absolute;inset:0 auto 0 0;width:0;background:var(--iphone);transition:width 60ms linear}
+.meter s{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--tally)}
+.hint{color:var(--muted);font-size:.92rem;margin:0}
+.msg{background:var(--surface);border-left:4px solid var(--tally);padding:10px 12px;border-radius:6px;font-size:.95rem}
+
+/* Botonera */
+.pad{display:grid;gap:10px;margin-top:14px}
+.cams{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{position:relative;border-radius:14px;padding:16px 12px;color:var(--onbtn);font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:1.6rem;line-height:1.05;text-align:left;min-height:84px;display:flex;flex-direction:column;justify-content:space-between;transition:transform 80ms ease}
+.btn small{font-family:"Barlow",sans-serif;font-weight:500;font-size:.8rem;opacity:.85}
+.btn:active{transform:scale(.97)}
+.cam{min-height:150px;font-size:2.3rem}
+.sony{background:var(--sony)} .iphone{background:var(--iphone)} .move{background:var(--move);min-height:64px;flex-direction:row;align-items:center;font-size:1.35rem}
+.rotulo{background:var(--rotulo)} .imagen{background:var(--imagen)} .dest{background:var(--dest)}
+.marks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.marks .btn{font-size:1.35rem}
+.cam.on{box-shadow:0 0 0 5px var(--bg),0 0 0 9px var(--tally)}
+.cam.on::after{content:"En plano";position:absolute;top:10px;right:10px;background:var(--tally);color:#fff;font-family:"Barlow",sans-serif;font-weight:600;font-size:.75rem;padding:3px 8px;border-radius:20px}
+.dest.open{box-shadow:0 0 0 4px var(--bg),0 0 0 7px var(--dest);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.75}}
+.flash{animation:flash 260ms ease-out}
+@keyframes flash{0%{filter:brightness(1.6)}100%{filter:none}}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dim{opacity:.35;pointer-events:none}
+
+/* Lista */
+.log{margin-top:18px}
+.log h2{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600;font-size:1.2rem;margin:0 0 6px}
+.log ol{list-style:none;margin:0;padding:0;max-height:240px;overflow:auto;border-top:1px solid var(--line)}
+.log li{display:grid;grid-template-columns:64px 14px 1fr 36px;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--line);font-size:.95rem}
+.log time{font-variant-numeric:tabular-nums;color:var(--muted)}
+.dot{width:12px;height:12px;border-radius:50%}
+.del{background:transparent;color:var(--muted);font-size:1.2rem;padding:4px}
+.empty{color:var(--muted);font-size:.95rem;padding:8px 0}
+
+/* Ajustes y exportar */
+details{margin-top:18px;border:2px solid var(--line);border-radius:12px;padding:4px 12px}
+summary{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600;font-size:1.2rem;padding:8px 0;cursor:pointer}
+.field{display:grid;gap:4px;margin:10px 0 14px}
+.field label{font-weight:600;font-size:.95rem}
+.field input,.field select{font:inherit;font-size:1rem;padding:10px;border-radius:8px;border:2px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.field input[type=range]{padding:0;border:0;accent-color:var(--tally)}
+.export{display:grid;gap:10px;margin-top:16px}
+textarea{width:100%;min-height:140px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
+.hidden{display:none!important}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header class="head">
+    <div>
+      <div class="status" id="status">Listo para empezar</div>
+    </div>
+    <div class="clock" id="clock">00:00</div>
+  </header>
+
+  <!-- Inicio -->
+  <section class="start" id="startBox">
+    <button class="big" id="armBtn">Esperar palmada</button>
+    <div id="armBox" class="hidden">
+      <div class="meter" aria-hidden="true"><i id="meterFill"></i><s id="meterLine"></s></div>
+      <p class="hint" style="margin-top:8px">Pon a grabar la Sony, el iPhone y la PodTrak, y da la palmada. La línea roja es el nivel que tiene que superar.</p>
+      <div class="row" style="margin-top:10px">
+        <button class="ghost" id="manualBtn">Palmada manual</button>
+        <button class="ghost" id="cancelArmBtn">Cancelar</button>
+      </div>
+    </div>
+    <div class="msg hidden" id="micMsg"></div>
+    <button class="ghost" id="manualOnlyBtn">Empezar sin micrófono (pulsa al dar la palmada)</button>
+  </section>
+
+  <!-- Botonera -->
+  <section class="pad dim" id="pad" aria-label="Botonera">
+    <div class="cams">
+      <button class="btn cam sony" data-k="sony">Sony<small>Tecla ← o 1</small></button>
+      <button class="btn cam iphone" data-k="iphone">iPhone<small>Tecla → o 2</small></button>
+    </div>
+    <button class="btn move" data-k="move">Muevo el iPhone<small style="margin-left:auto">Pasa a Sony</small></button>
+    <div class="marks">
+      <button class="btn rotulo" data-k="rotulo">Rótulo<small>3</small></button>
+      <button class="btn imagen" data-k="imagen">Imagen<small>4</small></button>
+      <button class="btn dest" data-k="dest" id="destBtn">Destacado<small id="destSub">Toca para abrir</small></button>
+    </div>
+    <div class="row">
+      <button class="ghost" id="undoBtn">Deshacer último</button>
+      <button class="ghost" id="endBtn">Terminar</button>
+    </div>
+  </section>
+
+  <!-- Lista -->
+  <section class="log">
+    <h2>Marcadores</h2>
+    <ol id="list"></ol>
+    <div class="empty" id="empty">Aún no hay marcadores. Empiezan a contar desde la palmada.</div>
+  </section>
+
+  <!-- Exportar -->
+  <section class="export hidden" id="exportBox">
+    <div class="field">
+      <label for="tcIn">Timecode de la palmada en tu timeline de DaVinci</label>
+      <input id="tcIn" inputmode="numeric" value="01:00:00:00" placeholder="01:00:00:00">
+      <p class="hint">Si la palmada está justo al inicio de la timeline, déjalo en 01:00:00:00.</p>
+    </div>
+    <button class="big" id="edlBtn">Descargar marcadores para DaVinci</button>
+    <p class="hint">Se descarga como .txt: cámbiale la extensión a .edl y en DaVinci usa Timeline → Import → Timeline Markers from EDL.</p>
+    <button class="ghost" id="jsonBtn">Descargar datos para Claude (.json)</button>
+    <textarea id="fallback" class="hidden" readonly aria-label="Contenido para copiar"></textarea>
+    <button class="ghost" id="newBtn">Nueva sesión</button>
+  </section>
+
+  <!-- Ajustes -->
+  <details id="settings">
+    <summary>Ajustes</summary>
+    <div class="field">
+      <label for="fps">Fotogramas por segundo de la timeline</label>
+      <select id="fps"><option>24</option><option selected>25</option><option>30</option><option>50</option><option>60</option></select>
+    </div>
+    <div class="field">
+      <label for="lead">Adelanto de cortes: <span id="leadVal">0,7</span> s</label>
+      <input type="range" id="lead" min="0" max="2" step="0.1" value="0.7">
+      <p class="hint">Compensa lo que tardas en reaccionar. Solo afecta a los cambios de cámara.</p>
+    </div>
+    <div class="field">
+      <label for="sens">Sensibilidad de la palmada: <span id="sensVal">5</span></label>
+      <input type="range" id="sens" min="1" max="10" step="1" value="5">
+      <p class="hint">Si salta con ruidos normales, bájala. Si no detecta la palmada, súbela.</p>
+    </div>
+  </details>
+</div>
+
+<script>
+(function(){
+  const KEY = 'podcast-marcadores-v1';
+  const LABEL = {sony:'Sony', iphone:'iPhone', move:'Sony (muevo el iPhone)', rotulo:'Rótulo', imagen:'Imagen', dest:'Destacado'};
+  const COLOR = {sony:'Blue', iphone:'Green', move:'Cyan', rotulo:'Yellow', imagen:'Purple', dest:'Pink'};
+  const CSSV = {sony:'--sony', iphone:'--iphone', move:'--move', rotulo:'--rotulo', imagen:'--imagen', dest:'--dest'};
+  const $ = id => document.getElementById(id);
+
+  let S = {zero:null, end:null, markers:[], destOpen:null, cam:null, fps:25, lead:0.7, sens:5, tc:'01:00:00:00'};
+  try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch(e){}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} };
+
+  // Ajustes
+  $('fps').value = String(S.fps); $('lead').value = S.lead; $('sens').value = S.sens; $('tcIn').value = S.tc;
+  const fmtDec = n => String(n).replace('.', ',');
+  $('leadVal').textContent = fmtDec(S.lead); $('sensVal').textContent = S.sens;
+  $('fps').onchange = e => { S.fps = +e.target.value; save(); };
+  $('lead').oninput = e => { S.lead = +e.target.value; $('leadVal').textContent = fmtDec(S.lead); save(); };
+  $('sens').oninput = e => { S.sens = +e.target.value; $('sensVal').textContent = S.sens; drawLine(); save(); };
+  $('tcIn').onchange = e => { S.tc = e.target.value.trim(); save(); };
+
+  const threshold = () => 0.9 - S.sens * 0.08;
+  const drawLine = () => { $('meterLine').style.left = (threshold()*100) + '%'; };
+  drawLine();
+
+  const now = () => S.zero == null ? 0 : (Date.now() - S.zero) / 1000;
+  const mmss = t => { t = Math.max(0, t); const h = Math.floor(t/3600), m = Math.floor(t%3600/60), s = Math.floor(t%60);
+    return (h ? h + ':' + String(m).padStart(2,'0') : String(m).padStart(2,'0')) + ':' + String(s).padStart(2,'0'); };
+
+  // Wake lock
+  let lock = null;
+  async function keepAwake(){ try { if ('wakeLock' in navigator) lock = await navigator.wakeLock.request('screen'); } catch(e){} }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.zero != null && S.end == null) keepAwake(); });
+  const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch(e){} };
+
+  // Arranque
+  function startAt(epoch){
+    S.zero = epoch; S.end = null; S.markers = []; S.destOpen = null; S.cam = null;
+    save(); stopMic(); keepAwake(); buzz([60,40,60]);
+    document.body.classList.add('flash'); setTimeout(()=>document.body.classList.remove('flash'), 300);
+    render();
+  }
+
+  // Micrófono
+  let audio = null, stream = null, raf = null;
+  function stopMic(){
+    if (raf) cancelAnimationFrame(raf); raf = null;
+    if (stream) stream.getTracks().forEach(t => t.stop()); stream = null;
+    if (audio) { try { audio.close(); } catch(e){} } audio = null;
+    $('armBox').classList.add('hidden'); $('armBtn').classList.remove('hidden');
+  }
+  function micError(text){
+    $('micMsg').textContent = text; $('micMsg').classList.remove('hidden'); stopMic();
+  }
+  $('armBtn').onclick = async () => {
+    $('micMsg').classList.add('hidden');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      micError('Este navegador no deja usar el micrófono aquí. Usa "Empezar sin micrófono" y pulsa justo al dar la palmada.'); return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false}});
+    } catch(e) {
+      micError('No se ha podido usar el micrófono. Revisa el permiso, o usa "Empezar sin micrófono" y pulsa justo al dar la palmada.'); return;
+    }
+    audio = new (window.AudioContext || window.webkitAudioContext)();
+    const src = audio.createMediaStreamSource(stream);
+    const an = audio.createAnalyser(); an.fftSize = 2048; src.connect(an);
+    const buf = new Float32Array(an.fftSize);
+    const armedAt = performance.now();
+    let avg = 0.02;
+    $('armBtn').classList.add('hidden'); $('armBox').classList.remove('hidden');
+    $('status').innerHTML = '<b>Esperando la palmada…</b>';
+    keepAwake();
+    const loop = () => {
+      an.getFloatTimeDomainData(buf);
+      let peak = 0, idx = 0, sum = 0;
+      for (let i = 0; i < buf.length; i++) { const a = Math.abs(buf[i]); sum += a*a; if (a > peak) { peak = a; idx = i; } }
+      const rms = Math.sqrt(sum / buf.length);
+      $('meterFill').style.width = Math.min(100, peak*100) + '%';
+      const p = performance.now();
+      if (p - armedAt > 400 && peak >= threshold() && peak > avg * 6) {
+        const ago = (buf.length - idx) / audio.sampleRate * 1000;
+        startAt(Date.now() - ago);
+        return;
+      }
+      avg = avg * 0.95 + rms * 0.05;
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+  };
+  $('cancelArmBtn').onclick = () => { stopMic(); render(); };
+  $('manualBtn').onclick = () => startAt(Date.now());
+  $('manualOnlyBtn').onclick = () => {
+    $('manualOnlyBtn').textContent = 'Pulsa aquí justo al dar la palmada';
+    $('manualOnlyBtn').onclick = () => startAt(Date.now());
+  };
+
+  // Marcadores
+  function add(k){
+    if (S.zero == null || S.end != null) return;
+    const t = now();
+    if (k === 'dest') {
+      if (S.destOpen == null) { S.destOpen = t; }
+      else { S.markers.push({k:'dest', t:S.destOpen, d:Math.max(1, t - S.destOpen)}); S.destOpen = null; }
+    } else {
+      S.markers.push({k, t});
+      if (k === 'sony' || k === 'iphone' || k === 'move') S.cam = k === 'iphone' ? 'iphone' : 'sony';
+    }
+    buzz(30); save(); render();
+    const b = document.querySelector('[data-k="'+k+'"]'); if (b) { b.classList.remove('flash'); void b.offsetWidth; b.classList.add('flash'); }
+  }
+  document.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => add(b.dataset.k)));
+  document.addEventListener('keydown', e => {
+    if (e.target.matches('input,select,textarea')) return;
+    const map = {ArrowLeft:'sony', PageUp:'sony', '1':'sony', ArrowRight:'iphone', PageDown:'iphone', '2':'iphone', '3':'rotulo', '4':'imagen', '5':'dest', '0':'move'};
+    if (map[e.key]) { e.preventDefault(); add(map[e.key]); }
+  });
+  $('undoBtn').onclick = () => {
+    if (S.destOpen != null) { S.destOpen = null; }
+    else { S.markers.pop(); }
+    recomputeCam(); save(); render();
+  };
+  function recomputeCam(){
+    S.cam = null;
+    for (const m of S.markers) if (m.k === 'sony' || m.k === 'move') S.cam = 'sony'; else if (m.k === 'iphone') S.cam = 'iphone';
+  }
+  $('endBtn').onclick = () => {
+    if (!confirm('¿Terminar la grabación?')) return;
+    const t = now();
+    if (S.destOpen != null) { S.markers.push({k:'dest', t:S.destOpen, d:Math.max(1, t - S.destOpen)}); S.destOpen = null; }
+    S.end = t; save();
+    if (lock) { try { lock.release(); } catch(e){} lock = null; }
+    render();
+  };
+  $('newBtn').onclick = () => {
+    if (!confirm('Se borrarán los marcadores de esta sesión. ¿Seguro?')) return;
+    S.zero = null; S.end = null; S.markers = []; S.destOpen = null; S.cam = null; save();
+    $('manualOnlyBtn').textContent = 'Empezar sin micrófono (pulsa al dar la palmada)';
+    $('manualOnlyBtn').onclick = () => { $('manualOnlyBtn').textContent = 'Pulsa aquí justo al dar la palmada'; $('manualOnlyBtn').onclick = () => startAt(Date.now()); };
+    $('fallback').classList.add('hidden');
+    render();
+  };
+
+  // Exportación
+  const isCam = k => k === 'sony' || k === 'iphone' || k === 'move';
+  function effTime(m){ return isCam(m.k) ? Math.max(0, m.t - S.lead) : m.t; }
+  function tcToFrames(tc, fps){
+    const p = tc.split(/[:;.]/).map(Number);
+    if (p.length !== 4 || p.some(isNaN)) return null;
+    return ((p[0]*60 + p[1])*60 + p[2])*fps + p[3];
+  }
+  function framesToTc(f, fps){
+    const ff = f % fps, s = Math.floor(f / fps), ss = s % 60, mm = Math.floor(s/60) % 60, hh = Math.floor(s/3600);
+    return [hh,mm,ss,ff].map(n => String(n).padStart(2,'0')).join(':');
+  }
+  function buildEDL(){
+    const fps = S.fps, base = tcToFrames(S.tc, fps);
+    if (base == null) return null;
+    const list = S.markers.map(m => ({m, t:effTime(m)})).sort((a,b) => a.t - b.t);
+    let out = 'TITLE: Marcadores podcast\nFCM: NON-DROP FRAME\n\n';
+    list.forEach((x, i) => {
+      const fin = base + Math.round(x.t * fps);
+      const dur = x.m.d ? Math.max(1, Math.round(x.m.d * fps)) : 1;
+      const a = framesToTc(fin, fps), b = framesToTc(fin + dur, fps);
+      out += String(i+1).padStart(3,'0') + '  001      V     C        ' + a + ' ' + b + ' ' + a + ' ' + b + '  \n';
+      out += ' |C:ResolveColor' + COLOR[x.m.k] + ' |M:' + LABEL[x.m.k] + ' |D:' + dur + '\n\n';
+    });
+    return out;
+  }
+  function buildJSON(){
+    return JSON.stringify({
+      formato:'marcadores-podcast-v1',
+      fecha:new Date(S.zero).toISOString(),
+      fps:S.fps, adelanto_cortes_s:S.lead, tc_palmada:S.tc, duracion_s:S.end,
+      nota:'t = segundos desde la palmada (sin adelanto). t_ajustado aplica el adelanto a los cambios de cámara.',
+      marcadores:S.markers.map(m => ({tipo:m.k, nombre:LABEL[m.k], t:+m.t.toFixed(3), t_ajustado:+effTime(m).toFixed(3), duracion:m.d ? +m.d.toFixed(3) : undefined}))
+    }, null, 2);
+  }
+  let dl = null, dlTried = false;
+  async function getDownloads(){
+    if (dlTried) return dl; dlTried = true;
+    try { dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch(e){ dl = null; }
+    return dl;
+  }
+  const stamp = () => { const d = new Date(S.zero || Date.now()); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+  async function offer(filename, data){
+    const d = await getDownloads();
+    if (d) {
+      try { await d.save({filename, data}); return; }
+      catch(e){ if (e && e.code === 'declined') return; }
+    }
+    if (!d) {
+      try {
+        const type = filename.endsWith('.json') ? 'application/json' : 'text/plain';
+        const url = URL.createObjectURL(new Blob([data], {type}));
+        const a = document.createElement('a'); a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        return;
+      } catch(e){}
+    }
+    const ta = $('fallback'); ta.value = data; ta.classList.remove('hidden'); ta.select();
+    try { await navigator.clipboard.writeText(data); alert('No se ha podido descargar. Lo he copiado al portapapeles y también lo tienes abajo para copiarlo.'); }
+    catch(e){ alert('No se ha podido descargar. Copia el texto de abajo y guárdalo como ' + filename + '.'); }
+  }
+  $('edlBtn').onclick = () => {
+    S.tc = $('tcIn').value.trim(); save();
+    const edl = buildEDL();
+    if (!edl) { alert('El timecode tiene que tener el formato HH:MM:SS:FF, por ejemplo 01:00:00:00.'); return; }
+    offer('marcadores-podcast-' + stamp() + '.txt', edl);
+  };
+  $('jsonBtn').onclick = () => offer('marcadores-podcast-' + stamp() + '.json', buildJSON());
+
+  // Pintado
+  function render(){
+    const running = S.zero != null && S.end == null, done = S.end != null;
+    $('startBox').classList.toggle('hidden', running || done);
+    $('pad').classList.toggle('dim', !running);
+    $('pad').classList.toggle('hidden', done);
+    $('exportBox').classList.toggle('hidden', !done);
+    document.body.classList.toggle('live', running);
+    if (running) $('status').innerHTML = '<b>Grabando</b> desde la palmada';
+    else if (done) $('status').innerHTML = '<b>Terminado</b> · ' + S.markers.length + ' marcadores';
+    else if (!audio) $('status').textContent = 'Listo para empezar';
+    $('clock').textContent = mmss(done ? S.end : now());
+    document.querySelectorAll('.cam').forEach(b => b.classList.toggle('on', running && b.dataset.k === S.cam));
+    $('destBtn').classList.toggle('open', S.destOpen != null);
+    $('destSub').textContent = S.destOpen != null ? 'Toca para cerrar' : 'Toca para abrir';
+    const ol = $('list'); ol.innerHTML = '';
+    const items = S.markers.map((m,i) => ({m,i})).reverse();
+    $('empty').classList.toggle('hidden', items.length > 0 || S.destOpen != null);
+    if (S.destOpen != null) {
+      const li = document.createElement('li');
+      li.innerHTML = '<time>' + mmss(S.destOpen) + '</time><span class="dot" style="background:var(--dest)"></span><span>Destacado abierto…</span><span></span>';
+      ol.appendChild(li);
+    }
+    items.forEach(({m,i}) => {
+      const li = document.createElement('li');
+      const t = document.createElement('time'); t.textContent = mmss(m.t);
+      const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = 'var(' + CSSV[m.k] + ')';
+      const name = document.createElement('span'); name.textContent = LABEL[m.k] + (m.d ? ' (' + Math.round(m.d) + ' s)' : '');
+      const del = document.createElement('button'); del.className = 'del'; del.textContent = '×'; del.setAttribute('aria-label', 'Borrar ' + LABEL[m.k] + ' en ' + mmss(m.t));
+      del.onclick = () => { S.markers.splice(i,1); recomputeCam(); save(); render(); };
+      li.append(t, dot, name, del); ol.appendChild(li);
+    });
+  }
+  setInterval(() => { if (S.zero != null && S.end == null) $('clock').textContent = mmss(now()); }, 250);
+  if (S.zero != null && S.end == null) keepAwake();
+  render();
+})();
+</script>
+</body>
+</html>
